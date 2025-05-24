@@ -7,6 +7,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 
 import androidx.activity.EdgeToEdge;
@@ -21,6 +23,8 @@ import java.util.Set;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MAinActivity";
+    private static final float ZOOM_FACTOR = 1.15f;
+    private static  float currentScale = 1f;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -34,7 +38,29 @@ public class MainActivity extends AppCompatActivity {
         ImageView mapView = findViewById(R.id.MapVeiw);
         mapView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
         drawSVG(mapView);
+
         mapView.setOnTouchListener(getListener());
+
+        ImageButton zoomInButton =  findViewById(R.id.ZoomInButton);
+
+        zoomInButton.setOnClickListener(v -> zoomIn(mapView));
+
+        ImageButton zoomOutButton = findViewById(R.id.ZoomOutButton);
+
+        zoomOutButton.setOnClickListener(v -> zoomOut(mapView));
+    }
+
+
+    private void zoomIn(ImageView v){
+        currentScale *= ZOOM_FACTOR;
+        v.setScaleX(currentScale);
+        v.setScaleY(currentScale);
+    }
+
+    private void zoomOut(ImageView v){
+        currentScale /= ZOOM_FACTOR;
+        v.setScaleX(currentScale);
+        v.setScaleY(currentScale);
     }
 
     private View.OnTouchListener getListener(){
