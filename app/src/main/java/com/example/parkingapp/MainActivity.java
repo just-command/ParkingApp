@@ -14,14 +14,6 @@ import com.caverock.androidsvg.SVGParseException;
 
 import java.io.IOException;
 
-import android.os.Bundle;
-
-import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-
 
 public class MainActivity extends AppCompatActivity {
 
@@ -33,24 +25,14 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
-//        LinearLayout l = findViewById(R.id.main);
-
-//        LinearLayout layout = new LinearLayout(this);
-
-//        SVGImageView svgImageView = new SVGImageView(this);
-//        svgImageView.setImageAsset("map1.svg");
-//        layout.addView(svgImageView,
-//                       new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.MATCH_PARENT));
-//        setContentView(layout);
-
-        ImageView imgV = findViewById(R.id.imageView);
+        ImageView imgV = findViewById(R.id.MapVeiw);
         imgV.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
         try{
             SVG svg = SVG.getFromAsset(this.getAssets(), "map1.svg");
             Drawable drawable = new PictureDrawable(svg.renderToPicture());
             imgV.setImageDrawable(drawable);
         }catch (SVGParseException | IOException e){
-            System.out.println(e);
+            System.out.println(e.getMessage());
         }
     }
 }
