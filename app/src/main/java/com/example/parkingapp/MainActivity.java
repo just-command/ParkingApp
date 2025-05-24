@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 
@@ -18,7 +17,6 @@ import com.caverock.androidsvg.SVG;
 import com.caverock.androidsvg.SVGParseException;
 
 import java.io.IOException;
-import java.util.Set;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -39,14 +37,16 @@ public class MainActivity extends AppCompatActivity {
         mapView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
         drawSVG(mapView);
 
-        mapView.setOnTouchListener(getListener());
+        mapView.setOnTouchListener(createListenerForMoveMap());
 
+        zooming(mapView);
+    }
+
+    private void zooming(ImageView mapView) {
         ImageButton zoomInButton =  findViewById(R.id.ZoomInButton);
-
         zoomInButton.setOnClickListener(v -> zoomIn(mapView));
 
         ImageButton zoomOutButton = findViewById(R.id.ZoomOutButton);
-
         zoomOutButton.setOnClickListener(v -> zoomOut(mapView));
     }
 
@@ -63,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
         v.setScaleY(currentScale);
     }
 
-    private View.OnTouchListener getListener(){
+    private View.OnTouchListener createListenerForMoveMap(){
         return new View.OnTouchListener(){
             float dX, dY;
             @SuppressLint("ClickableViewAccessibility")
@@ -95,8 +95,6 @@ public class MainActivity extends AppCompatActivity {
         try{
             SVG svg = SVG.getFromAsset(this.getAssets(), "map1.svg");
             String l = svg.getDocumentDescription();
-            Log.d(TAG, "Я ЗДЕСЬ!!!!!!! СМОТРИ!!!");
-            Log.d(TAG, l);
             Drawable drawable = new PictureDrawable(svg.renderToPicture());
             imgV.setImageDrawable(drawable);
         }catch (SVGParseException | IOException e){
