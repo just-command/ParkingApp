@@ -22,6 +22,6 @@ public class SelectMap extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         binding = ActivitySelectMapBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
+        setContentView(R.layout.activity_select_map);
         };
     }
