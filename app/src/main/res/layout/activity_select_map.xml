@@ -47,4 +47,5 @@
             android:layout_height="wrap_content"
             android:text="@string/submit_button_text" />
     </RadioGroup>
+
 </LinearLayout>

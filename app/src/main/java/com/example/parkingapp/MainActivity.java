@@ -52,7 +52,9 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void setZooming(ImageView mapView) {
+   
+
+    private void zooming(ImageView mapView) {
         ImageButton zoomInButton =  findViewById(R.id.ZoomInButton);
         zoomInButton.setOnClickListener(v -> zoomIn(mapView));
 
