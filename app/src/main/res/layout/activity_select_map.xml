@@ -2,28 +2,49 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/MapsList"
+    android:id="@+id/SelectMap"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:fitsSystemWindows="true"
     android:orientation="vertical"
-    tools:context=".SelectMap">
+    tools:context=".SelectMap" >
 
     <TextView
-        android:id="@+id/textView2"
+        android:id="@+id/SelectMapHeader"
+        style="@android:style/Widget.Material.Light.TextView"
         android:layout_width="match_parent"
-        android:layout_height="41dp"
-        android:text="TextView" />
+        android:layout_height="51dp"
+        android:text="@string/select_parking"
+        android:textAlignment="center"
+        android:textSize="20sp"
+        android:textStyle="bold" />
 
-    <TextView
-        android:id="@+id/textView"
+    <RadioGroup
         android:layout_width="match_parent"
-        android:layout_height="41dp"
-        android:text="TextView" />
+        android:layout_height="match_parent" >
 
-    <TextView
-        android:id="@+id/textView3"
-        android:layout_width="match_parent"
-        android:layout_height="41dp"
-        android:text="TextView" />
+        <RadioButton
+            android:id="@+id/radioButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/parking_map_one" />
+
+        <RadioButton
+            android:id="@+id/radioButton2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/parking_map_two" />
+
+        <RadioButton
+            android:id="@+id/radioButton3"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/parking_map_three" />
+
+        <Button
+            android:id="@+id/SubmitButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/submit_button_text" />
+    </RadioGroup>
 </LinearLayout>

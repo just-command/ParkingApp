@@ -94,4 +94,10 @@
     <string name="zoom_in_desc">Приблизить карту</string>
     <string name="zoom_out_desc">Отдалить карту</string>
     <string name="select_map_btn_desc">Выбор карты</string>
+    <string name="list_maps">Maps</string>
+    <string name="select_parking">Выбор парковки</string>
+    <string name="submit_button_text">Выбрать</string>
+    <string name="parking_map_one">Пврковка один</string>
+    <string name="parking_map_two">Парковка два</string>
+    <string name="parking_map_three">Парковка три</string>
 </resources>
