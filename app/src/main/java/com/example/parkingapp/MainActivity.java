@@ -1,6 +1,7 @@
 package com.example.parkingapp;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.PictureDrawable;
 import android.os.Bundle;
@@ -35,12 +36,23 @@ public class MainActivity extends AppCompatActivity {
 
         ImageView mapView = findViewById(R.id.MapVeiw);
         mapView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+
         drawSVG(mapView);
-
         mapView.setOnTouchListener(createListenerForMoveMap());
+        setZooming(mapView);
 
-        zooming(mapView);
+        ImageButton selectMap = findViewById(R.id.SelectMapButton);
+
+        Intent intent = new Intent(this, SelectMap.class);
+        selectMap.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(intent);
+            }
+        });
     }
+
+   
 
     private void zooming(ImageView mapView) {
         ImageButton zoomInButton =  findViewById(R.id.ZoomInButton);
@@ -71,13 +83,11 @@ public class MainActivity extends AppCompatActivity {
             public boolean onTouch(View v, MotionEvent event) {
                 switch (event.getAction()){
                     case MotionEvent.ACTION_DOWN:
-                        Log.d(TAG, "ПАЛЕЦ ОПУЩЕН!!!");
                         dX = v.getX() - event.getRawX();
                         dY = v.getY() - event.getRawY();
                         break;
 
                     case MotionEvent.ACTION_MOVE:
-                        Log.d(TAG, "FINGER IS MOVE!!!");
                         v.animate()
                                 .x(event.getRawX() + dX)
                                 .y(event.getRawY() + dY)
@@ -100,5 +110,29 @@ public class MainActivity extends AppCompatActivity {
         }catch (SVGParseException | IOException e){
             System.out.println(e.getMessage());
         }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        Log.d(TAG, "Activity on pause");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        Log.d(TAG, "Activity on Stop");
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        Log.d(TAG, "Activity on Start");
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        Log.d(TAG, "Activity on Resume");
     }
 }

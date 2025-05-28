@@ -31,12 +31,12 @@
 
         <ImageButton
             android:id="@+id/ZoomOutButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
             android:layout_marginTop="302dp"
             android:layout_marginEnd="27dp"
             android:layout_marginBottom="10dp"
-            android:backgroundTint="#272827"
+            android:backgroundTint="@color/buttons_background_color"
             android:contentDescription="@string/zoom_out_desc"
             android:scaleX="0.9"
             android:scaleY="0.9"
@@ -52,11 +52,12 @@
 
         <ImageButton
             android:id="@+id/ZoomInButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
             android:layout_marginEnd="27dp"
             android:layout_marginBottom="24dp"
-            android:backgroundTint="#272827"
+            android:backgroundTint="@color/buttons_background_color"
+
             android:contentDescription="@string/zoom_in_desc"
             android:scaleX="0.9"
             android:scaleY="0.9"
@@ -74,8 +75,7 @@
             android:id="@+id/SelectMapButton"
             android:layout_width="143dp"
             android:layout_height="149dp"
-            android:background="#00FFFFFF"
-            android:backgroundTint="#00730C73"
+            android:backgroundTint="#00FFFFFF"
             android:backgroundTintMode="multiply"
             android:contentDescription="@string/select_map_btn_desc"
             android:scaleX="0.7"

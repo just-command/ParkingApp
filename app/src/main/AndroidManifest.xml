@@ -26,8 +26,13 @@
         <activity
             android:name=".SelectMap"
             android:exported="false"
-            android:label="@string/title_activity_select_map"
-            android:theme="@style/Theme.ParkingApp.NoActionBar" />
+            android:label="@string/title_activity_select_map
+            android:theme="@style/Theme.ParkingApp.NoActionBar">
+        <intent-filter>
+            <action android:name="android.intent.action.SelectMap"/>
+            <category android:name="android.intent.category.DEFAULT"/>
+        </intent-filter>
+        </activity>
 
     </application>
 
