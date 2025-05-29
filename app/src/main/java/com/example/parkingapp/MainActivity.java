@@ -2,8 +2,6 @@ package com.example.parkingapp;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.PictureDrawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -13,11 +11,6 @@ import android.widget.ImageView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-
-import com.caverock.androidsvg.SVG;
-import com.caverock.androidsvg.SVGParseException;
-
-import java.io.IOException;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -39,7 +32,9 @@ public class MainActivity extends AppCompatActivity {
         ImageView mapView = findViewById(R.id.MapVeiw);
         mapView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
 
-        drawSVG(mapView);
+        SVGTransformer transformer = new SVGTransformer(this, "map1.svg");
+        transformer.renderToImageView(mapView);
+
         mapView.setOnTouchListener(createListenerForMoveMap());
         setZooming(mapView);
 
@@ -102,16 +97,6 @@ public class MainActivity extends AppCompatActivity {
                 return true;}
                  };}
 
-    private void drawSVG(ImageView imgV) {
-        try{
-            SVG svg = SVG.getFromAsset(this.getAssets(), "map1.svg");
-            String l = svg.getDocumentDescription();
-            Drawable drawable = new PictureDrawable(svg.renderToPicture());
-            imgV.setImageDrawable(drawable);
-        }catch (SVGParseException | IOException e){
-            System.out.println(e.getMessage());
-        }
-    }
 
     @Override
     protected void onPause() {
