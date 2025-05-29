@@ -22,12 +22,14 @@ import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MAinActivity";
+    private static final String STATES = "STATES";
     private static final float ZOOM_FACTOR = 1.15f;
     private static  float currentScale = 1f;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d(STATES, "Создается Main Activity");
         super.onCreate(savedInstanceState);
 
         EdgeToEdge.enable(this);
@@ -113,24 +115,26 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        Log.d(TAG, "Activity on pause");
+        Log.d(STATES, "Activity on pause");
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        Log.d(TAG, "Activity on Stop");
+        Log.d(STATES, "Activity on Stop");
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        Log.d(TAG, "Activity on Start");
+        Intent intent_from_select_map = getIntent();
+        Log.d(STATES,
+        "On start from intent: " + String.format("%s", intent_from_select_map.getStringExtra("name")));
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        Log.d(TAG, "Activity on Resume");
+        Log.d(STATES, "Activity on Resume");
     }
 }
