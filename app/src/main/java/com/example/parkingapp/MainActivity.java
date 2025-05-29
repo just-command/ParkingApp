@@ -100,7 +100,6 @@ public class MainActivity extends AppCompatActivity {
                 return true;}
                  };}
 
-
     private void drawSVG(ImageView imgV) {
         try{
             SVG svg = SVG.getFromAsset(this.getAssets(), "map1.svg");
