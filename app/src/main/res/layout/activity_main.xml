@@ -57,7 +57,6 @@
             android:layout_marginEnd="27dp"
             android:layout_marginBottom="24dp"
             android:backgroundTint="@color/buttons_background_color"
-
             android:contentDescription="@string/zoom_in_desc"
             android:scaleX="0.9"
             android:scaleY="0.9"

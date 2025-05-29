@@ -2,6 +2,7 @@ package com.example.parkingapp;
 
 import android.content.Intent;
 import android.os.Bundle;
+
 import com.google.android.material.appbar.CollapsingToolbarLayout;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
@@ -37,6 +38,6 @@ public class SelectMap extends AppCompatActivity {
                     }
                 }
         );
-       
+
         };
     }
