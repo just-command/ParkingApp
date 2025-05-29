@@ -13,6 +13,7 @@ import androidx.appcompat.widget.Toolbar;
 import android.view.View;
 import android.widget.Button;
 
+
 import com.example.parkingapp.databinding.ActivitySelectMapBinding;
 
 public class SelectMap extends AppCompatActivity {
@@ -24,6 +25,7 @@ public class SelectMap extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         binding = ActivitySelectMapBinding.inflate(getLayoutInflater());
+
         setContentView(binding.SelectMap);
 
         Intent intent = new Intent(this, MainActivity.class);
