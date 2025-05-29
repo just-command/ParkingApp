@@ -52,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+
     private void setZooming(ImageView mapView) {
         ImageButton zoomInButton =  findViewById(R.id.ZoomInButton);
         zoomInButton.setOnClickListener(v -> zoomIn(mapView));
@@ -98,6 +99,7 @@ public class MainActivity extends AppCompatActivity {
                 }
                 return true;}
                  };}
+
 
     private void drawSVG(ImageView imgV) {
         try{
