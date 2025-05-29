@@ -2,8 +2,6 @@ package com.example.parkingapp;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.graphics.drawable.Drawable;
-import android.graphics.drawable.PictureDrawable;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -14,20 +12,17 @@ import android.widget.ImageView;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.caverock.androidsvg.SVG;
-import com.caverock.androidsvg.SVGParseException;
-
-import java.io.IOException;
-
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MAinActivity";
+    private static final String STATES = "STATES";
     private static final float ZOOM_FACTOR = 1.15f;
     private static  float currentScale = 1f;
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d(STATES, "Создается Main Activity");
         super.onCreate(savedInstanceState);
 
         EdgeToEdge.enable(this);
@@ -37,7 +32,9 @@ public class MainActivity extends AppCompatActivity {
         ImageView mapView = findViewById(R.id.MapVeiw);
         mapView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
 
-        drawSVG(mapView);
+        SVGTransformer transformer = new SVGTransformer(this, "map1.svg");
+        transformer.renderToImageView(mapView);
+
         mapView.setOnTouchListener(createListenerForMoveMap());
         setZooming(mapView);
 
@@ -100,38 +97,30 @@ public class MainActivity extends AppCompatActivity {
                 return true;}
                  };}
 
-    private void drawSVG(ImageView imgV) {
-        try{
-            SVG svg = SVG.getFromAsset(this.getAssets(), "map1.svg");
-            String l = svg.getDocumentDescription();
-            Drawable drawable = new PictureDrawable(svg.renderToPicture());
-            imgV.setImageDrawable(drawable);
-        }catch (SVGParseException | IOException e){
-            System.out.println(e.getMessage());
-        }
-    }
 
     @Override
     protected void onPause() {
         super.onPause();
-        Log.d(TAG, "Activity on pause");
+        Log.d(STATES, "Activity on pause");
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        Log.d(TAG, "Activity on Stop");
+        Log.d(STATES, "Activity on Stop");
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        Log.d(TAG, "Activity on Start");
+        Intent intent_from_select_map = getIntent();
+        Log.d(STATES,
+        "On start from intent: " + String.format("%s", intent_from_select_map.getStringExtra("name")));
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        Log.d(TAG, "Activity on Resume");
+        Log.d(STATES, "Activity on Resume");
     }
 }

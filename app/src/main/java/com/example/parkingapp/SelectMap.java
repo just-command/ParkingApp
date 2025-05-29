@@ -34,6 +34,7 @@ public class SelectMap extends AppCompatActivity {
                 new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
+                        intent.putExtra("name", "100500" );
                         startActivity(intent);
                     }
                 }
