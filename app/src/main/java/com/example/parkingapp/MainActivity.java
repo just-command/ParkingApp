@@ -8,28 +8,89 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.constraintlayout.widget.ConstraintLayout;
 
 import com.caverock.androidsvg.SVG;
 import com.caverock.androidsvg.SVGImageView;
 import com.caverock.androidsvg.SVGParseException;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
-
+/**
+ * Main activity for the parking app that displays and manages interactive SVG maps.
+ */
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MAinActivity";
     private static final String STATES = "STATES";
     private static final float ZOOM_FACTOR = 1.15f;
+    private static final float MIN_SCALE = 0.9f;
+    private static final float MAX_SCALE = 3.0f;
     private static  float currentScale = 1f;
 
     private static final String MAP1 = "map1.svg";
     private static final String MAP2 = "map2.svg";
     private static final String MAP3 = "map3.svg";
+    
+    private final Map<String, SVG> svgCache = new HashMap<>();
+    private SVGImageView mapView;
+    private long backPressedTime;
+    private Toast backToast;
 
+    /**
+     * Loads and displays the specified map
+     * @param mapName name of the map file to load
+     */
+    private void loadMap(String mapName) {
+        if (mapName == null || mapName.isEmpty()) {
+            Log.e(TAG, "Invalid map name");
+            return;
+        }
+
+        try {
+            SVG svg = getSVGFromCache(mapName);
+            if (svg != null) {
+                svg.setDocumentViewBox(0, 0, svg.getDocumentWidth(), svg.getDocumentHeight());
+                svg.setDocumentHeight("100%");
+                svg.setDocumentWidth("100%");
+                
+                mapView.setSVG(svg);
+                mapView.setCSS("#C5{fill: #234fd3ff;}");
+                mapView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+                
+                // Reset scale when loading new map
+                currentScale = 1f;
+                mapView.setScaleX(currentScale);
+                mapView.setScaleY(currentScale);
+            }
+        } catch (SVGParseException e) {
+            Log.e(TAG, "Error loading map: " + mapName, e);
+            Toast.makeText(this, "Error loading map", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /**
+     * Gets SVG from cache or loads it from assets
+     * @param mapName name of the map file
+     * @return SVG object or null if loading failed
+     */
+    private SVG getSVGFromCache(String mapName) {
+        if (!svgCache.containsKey(mapName)) {
+            try {
+                SVG svg = SVG.getFromAsset(getAssets(), mapName);
+                svgCache.put(mapName, svg);
+            } catch (SVGParseException | IOException e) {
+                Log.e(TAG, "Error loading SVG from assets: " + mapName, e);
+                return null;
+            }
+        }
+        return svgCache.get(mapName);
+    }
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
@@ -39,32 +100,25 @@ public class MainActivity extends AppCompatActivity {
 
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
-        SVG svg;
-        try {
-            svg = SVG.getFromAsset(this.getAssets(), MAP3);
-        } catch (SVGParseException | IOException e) {
-            throw new RuntimeException(e);
-        }
-        svg.setDocumentViewBox(0, 0, svg.getDocumentWidth(),
-                                                svg.getDocumentHeight());
-        try {
-            svg.setDocumentHeight("100%");
-        } catch (SVGParseException e) {
-            throw new RuntimeException(e);
-        }
-        try {
-            svg.setDocumentWidth("100%");
-        } catch (SVGParseException e) {
-            throw new RuntimeException(e);
-        }
-        SVGImageView mapView = findViewById(R.id.MapView);
-        mapView.setSVG(svg);
-        mapView.setCSS("#C5{fill: #234fd3ff;}");
+        
+        // Setup back press handling
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (backPressedTime + 2000 > System.currentTimeMillis()) {
+                    backToast.cancel();
+                    finishAffinity();
+                    return;
+                } else {
+                    backToast = Toast.makeText(getBaseContext(), "Press back again to exit", Toast.LENGTH_SHORT);
+                    backToast.show();
+                }
+                backPressedTime = System.currentTimeMillis();
+            }
+        });
 
-        mapView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
-
-//        SVGTransformer transformer = new SVGTransformer(this, "map1.svg");
-//        transformer.renderToImageView(mapView);
+        mapView = findViewById(R.id.MapView);
+        loadMap(MAP3); // Load default map
 
         mapView.setOnTouchListener(createListenerForMoveMap());
         setZooming(mapView);
@@ -91,16 +145,19 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void zoomIn(ImageView v){
-
-        currentScale *= ZOOM_FACTOR;
-        v.setScaleX(currentScale);
-        v.setScaleY(currentScale);
+        if (currentScale < MAX_SCALE) {
+            currentScale *= ZOOM_FACTOR;
+            v.setScaleX(currentScale);
+            v.setScaleY(currentScale);
+        }
     }
 
     private void zoomOut(ImageView v){
-        currentScale /= ZOOM_FACTOR;
-        v.setScaleX(currentScale);
-        v.setScaleY(currentScale);
+        if (currentScale > MIN_SCALE) {
+            currentScale /= ZOOM_FACTOR;
+            v.setScaleX(currentScale);
+            v.setScaleY(currentScale);
+        }
     }
 
     private View.OnTouchListener createListenerForMoveMap(){
@@ -145,9 +202,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        Intent intent_from_select_map = getIntent();
-        Log.d(STATES,
-        "On start from intent: " + String.format("%s", intent_from_select_map.getStringExtra("name")));
+        Intent intent = getIntent();
+        String mapName = intent != null ? intent.getStringExtra("name") : null;
+        if (mapName != null) {
+            Log.d(TAG, "Loading map: " + mapName);
+            loadMap(mapName);
+        }
     }
 
     @Override

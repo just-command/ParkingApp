@@ -36,10 +36,9 @@ public class SelectMap extends AppCompatActivity {
                     public void onClick(View v) {
                         intent.putExtra("name", "100500" );
                         startActivity(intent);
+                        finish();
                     }
                 }
         );
-
-
-        };
     }
+}
