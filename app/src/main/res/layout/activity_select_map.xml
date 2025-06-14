@@ -20,11 +20,12 @@
         android:textStyle="bold" />
 
     <RadioGroup
+        android:id="@+id/RadioGroup"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" >
+        android:layout_height="match_parent">
 
         <RadioButton
-            android:id="@+id/radioButton"
+            android:id="@+id/radioButton1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/parking_map_one" />
