@@ -11,6 +11,13 @@ import android.widget.ImageView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
+
+import com.caverock.androidsvg.SVG;
+import com.caverock.androidsvg.SVGImageView;
+import com.caverock.androidsvg.SVGParseException;
+
+import java.io.IOException;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -19,6 +26,11 @@ public class MainActivity extends AppCompatActivity {
     private static final float ZOOM_FACTOR = 1.15f;
     private static  float currentScale = 1f;
 
+    private static final String MAP1 = "map1.svg";
+    private static final String MAP2 = "map2.svg";
+    private static final String MAP3 = "map3.svg";
+
+
     @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,14 +38,33 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         EdgeToEdge.enable(this);
-
         setContentView(R.layout.activity_main);
+        SVG svg;
+        try {
+            svg = SVG.getFromAsset(this.getAssets(), MAP3);
+        } catch (SVGParseException | IOException e) {
+            throw new RuntimeException(e);
+        }
+        svg.setDocumentViewBox(0, 0, svg.getDocumentWidth(),
+                                                svg.getDocumentHeight());
+        try {
+            svg.setDocumentHeight("100%");
+        } catch (SVGParseException e) {
+            throw new RuntimeException(e);
+        }
+        try {
+            svg.setDocumentWidth("100%");
+        } catch (SVGParseException e) {
+            throw new RuntimeException(e);
+        }
+        SVGImageView mapView = findViewById(R.id.MapView);
+        mapView.setSVG(svg);
+        mapView.setCSS("#C5{fill: #234fd3ff;}");
 
-        ImageView mapView = findViewById(R.id.MapVeiw);
         mapView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
 
-        SVGTransformer transformer = new SVGTransformer(this, "map1.svg");
-        transformer.renderToImageView(mapView);
+//        SVGTransformer transformer = new SVGTransformer(this, "map1.svg");
+//        transformer.renderToImageView(mapView);
 
         mapView.setOnTouchListener(createListenerForMoveMap());
         setZooming(mapView);
@@ -60,6 +91,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void zoomIn(ImageView v){
+
         currentScale *= ZOOM_FACTOR;
         v.setScaleX(currentScale);
         v.setScaleY(currentScale);

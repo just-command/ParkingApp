@@ -27,6 +27,7 @@ public class SVGTransformer {
 
     public void changeSVG(){
         Log.d(SVGT, "Меняем SVG");
+
     }
 
     public void renderToImageView(ImageView view)
