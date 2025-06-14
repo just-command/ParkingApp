@@ -18,9 +18,11 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
+
 import com.caverock.androidsvg.SVGImageView;
 
 import java.util.List;
+
 
 /**
  * Main activity for the parking app that displays and manages interactive SVG maps.
@@ -51,10 +53,13 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
 
+
     @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         Log.d(STATES, "Creating Main Activity");
+
         super.onCreate(savedInstanceState);
 
         EdgeToEdge.enable(this);
@@ -162,17 +167,21 @@ public class MainActivity extends AppCompatActivity {
                     default:
                         return false;
                 }
+
                 return true;
             }
         };
     }
 
+
     @Override
     protected void onPause() {
         super.onPause();
         Log.d(STATES, "Activity on pause");
+
         // Останавливаем обновления при приостановке активности
         updateHandler.removeCallbacks(updateRunnable);
+
     }
 
     @Override
@@ -190,6 +199,7 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "Loading map: " + mapName);
             svgMapManager.loadMap(mapName);
         }
+
     }
 
     @Override
@@ -198,5 +208,6 @@ public class MainActivity extends AppCompatActivity {
         Log.d(STATES, "Activity on Resume");
         // Запускаем обновления при возобновлении активности
         updateHandler.post(updateRunnable);
+
     }
 }
