@@ -3,81 +3,154 @@ package com.example.parkingapp;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.OnBackPressedCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
 
+import com.caverock.androidsvg.SVGImageView;
+
+import java.util.List;
+
+
+/**
+ * Main activity for the parking app that displays and manages interactive SVG maps.
+ */
 public class MainActivity extends AppCompatActivity {
-    private static final String TAG = "MAinActivity";
+    private static final String TAG = "MainActivity";
     private static final String STATES = "STATES";
-    private static final float ZOOM_FACTOR = 1.15f;
-    private static  float currentScale = 1f;
+    private SVGImageView mapView;
+    private long backPressedTime;
+    private Toast backToast;
+    private ParkingMap currentParkingMap;
+    private MockServer mockServer;
+    private static final long UPDATE_INTERVAL = 5000; // 5 секунд
+    private Handler updateHandler;
+    private Runnable updateRunnable;
+    private SvgMapManager svgMapManager;
+
+    private final ActivityResultLauncher<Intent> mapSelectionLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                    String selectedMap = result.getData().getStringExtra("selectedMap");
+                    Log.d(TAG, "Received selected map: " + selectedMap);
+                    if (selectedMap != null) {
+                        svgMapManager.loadMap(selectedMap);
+                        initializeParkingMap(selectedMap);
+                    }
+                }
+            });
+
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.d(STATES, "Создается Main Activity");
+
+        Log.d(STATES, "Creating Main Activity");
+
         super.onCreate(savedInstanceState);
 
         EdgeToEdge.enable(this);
-
         setContentView(R.layout.activity_main);
+        
+        // Initialize MockServer
+        mockServer = MockServer.getInstance();
+        Log.d(TAG, "MockServer initialized");
+        
+        // Initialize update handler
+        updateHandler = new Handler(Looper.getMainLooper());
+        updateRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (currentParkingMap != null) {
+                    // Обновляем состояние парковочных мест
+                    List<ParkingSpot> updatedSpots = mockServer.getParkingSpots();
+                    for (ParkingSpot updatedSpot : updatedSpots) {
+                        ParkingSpot currentSpot = currentParkingMap.getParkingSpot(updatedSpot.getSpotNumber());
+                        if (currentSpot != null) {
+                            currentSpot.setOccupied(updatedSpot.isOccupied());
+                        }
+                    }
+                    svgMapManager.setCurrentParkingMap(currentParkingMap);
+                }
+                updateHandler.postDelayed(this, UPDATE_INTERVAL);
+            }
+        };
 
-        ImageView mapView = findViewById(R.id.MapVeiw);
-        mapView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
-
-        SVGTransformer transformer = new SVGTransformer(this, "map1.svg");
-        transformer.renderToImageView(mapView);
+        mapView = findViewById(R.id.MapView);
+        svgMapManager = new SvgMapManager(this, mapView);
+        
+        String defaultMap = ParkingConfig.MAP_1.getSvgFileName();
+        svgMapManager.loadMap(defaultMap);
+        initializeParkingMap(defaultMap);
 
         mapView.setOnTouchListener(createListenerForMoveMap());
-        setZooming(mapView);
+        setZooming();
 
         ImageButton selectMap = findViewById(R.id.SelectMapButton);
-
-        Intent intent = new Intent(this, SelectMap.class);
-        selectMap.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(intent);
-            }
+        selectMap.setOnClickListener(v -> {
+            Intent intent = new Intent(this, SelectMap.class);
+            mapSelectionLauncher.launch(intent);
         });
+
+        // Запускаем обновления
+        updateHandler.post(updateRunnable);
     }
 
-
-    private void setZooming(ImageView mapView) {
-        ImageButton zoomInButton =  findViewById(R.id.ZoomInButton);
-        zoomInButton.setOnClickListener(v -> zoomIn(mapView));
+    private void setZooming() {
+        ImageButton zoomInButton = findViewById(R.id.ZoomInButton);
+        zoomInButton.setOnClickListener(v -> svgMapManager.zoomIn());
 
         ImageButton zoomOutButton = findViewById(R.id.ZoomOutButton);
-        zoomOutButton.setOnClickListener(v -> zoomOut(mapView));
+        zoomOutButton.setOnClickListener(v -> svgMapManager.zoomOut());
     }
 
+    private void initializeParkingMap(String mapName) {
+        Log.d(TAG, "Initializing parking map: " + mapName);
+        ParkingConfig.MapConfig mapConfig = ParkingConfig.getMapConfig(mapName);
+        if (mapConfig == null) {
+            Log.e(TAG, "Unknown map configuration for: " + mapName);
+            Toast.makeText(this, "Error: Unknown map configuration", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-    private void zoomIn(ImageView v){
-        currentScale *= ZOOM_FACTOR;
-        v.setScaleX(currentScale);
-        v.setScaleY(currentScale);
+        // Уведомляем MockServer о смене карты
+        mockServer.setCurrentMap(mapName);
+
+        currentParkingMap = new ParkingMap(mapConfig.getMapName(), mapConfig.getSvgFileName());
+        
+        // Get parking spots from MockServer
+        List<ParkingSpot> spots = mockServer.getParkingSpots();
+        for (ParkingSpot spot : spots) {
+            currentParkingMap.addParkingSpot(spot);
+        }
+        
+        Log.d(TAG, "Initialized " + currentParkingMap.getParkingSpots().size() + " parking spots");
+        
+        // Обновляем цвета парковочных мест
+        svgMapManager.setCurrentParkingMap(currentParkingMap);
     }
 
-    private void zoomOut(ImageView v){
-        currentScale /= ZOOM_FACTOR;
-        v.setScaleX(currentScale);
-        v.setScaleY(currentScale);
-    }
-
-    private View.OnTouchListener createListenerForMoveMap(){
-        return new View.OnTouchListener(){
+    private View.OnTouchListener createListenerForMoveMap() {
+        return new View.OnTouchListener() {
             float dX, dY;
+
             @SuppressLint("ClickableViewAccessibility")
             @Override
             public boolean onTouch(View v, MotionEvent event) {
-                switch (event.getAction()){
+                switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
                         dX = v.getX() - event.getRawX();
                         dY = v.getY() - event.getRawY();
@@ -94,14 +167,21 @@ public class MainActivity extends AppCompatActivity {
                     default:
                         return false;
                 }
-                return true;}
-                 };}
+
+                return true;
+            }
+        };
+    }
 
 
     @Override
     protected void onPause() {
         super.onPause();
         Log.d(STATES, "Activity on pause");
+
+        // Останавливаем обновления при приостановке активности
+        updateHandler.removeCallbacks(updateRunnable);
+
     }
 
     @Override
@@ -113,14 +193,21 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        Intent intent_from_select_map = getIntent();
-        Log.d(STATES,
-        "On start from intent: " + String.format("%s", intent_from_select_map.getStringExtra("name")));
+        Intent intent = getIntent();
+        String mapName = intent != null ? intent.getStringExtra("name") : null;
+        if (mapName != null) {
+            Log.d(TAG, "Loading map: " + mapName);
+            svgMapManager.loadMap(mapName);
+        }
+
     }
 
     @Override
     protected void onResume() {
         super.onResume();
         Log.d(STATES, "Activity on Resume");
+        // Запускаем обновления при возобновлении активности
+        updateHandler.post(updateRunnable);
+
     }
 }

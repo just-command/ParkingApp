@@ -10,24 +10,35 @@
 
 
     <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/CLMain"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <ImageView
-            android:id="@+id/MapVeiw"
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="7dp"
-            android:layout_marginBottom="10dp"
-            android:contentDescription="@string/app_name"
+        <!--        <ImageView-->
+        <!--            android:id="@+id/MapVeiw"-->
+        <!--            android:layout_width="0dp"-->
+        <!--            android:layout_height="0dp"-->
+        <!--            android:layout_marginStart="8dp"-->
+        <!--            android:layout_marginTop="8dp"-->
+        <!--            android:layout_marginEnd="7dp"-->
+        <!--            android:layout_marginBottom="10dp"-->
+        <!--            android:contentDescription="@string/app_name"-->
+        <!--            app:layout_constraintBottom_toBottomOf="parent"-->
+        <!--            app:layout_constraintEnd_toEndOf="parent"-->
+        <!--            app:layout_constraintStart_toStartOf="parent"-->
+        <!--            app:layout_constraintTop_toTopOf="parent"-->
+        <!--            tools:ignore="VisualLintBounds"-->
+        <!--            tools:srcCompat="@drawable/map1" />-->
+
+        <com.caverock.androidsvg.SVGImageView
+            android:id="@+id/MapView"
+            android:layout_width="392dp"
+            android:layout_height="545dp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:ignore="VisualLintBounds"
-            tools:srcCompat="@drawable/map1" />
+            app:layout_constraintTop_toTopOf="parent" />
+
 
         <ImageButton
             android:id="@+id/ZoomOutButton"
