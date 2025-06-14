@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
     private Toast backToast;
     private ParkingMap currentParkingMap;
     private MockServer mockServer;
-    private static final long UPDATE_INTERVAL = 5000; // 5 секунд
+    private static final long UPDATE_INTERVAL = 1000; // 5 секунд
     private Handler updateHandler;
     private Runnable updateRunnable;
     private SvgMapManager svgMapManager;
