@@ -18,11 +18,8 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.caverock.androidsvg.SVG;
 import com.caverock.androidsvg.SVGImageView;
-import com.caverock.androidsvg.SVGParseException;
 
-import java.io.IOException;
 import java.util.List;
 
 /**
@@ -31,10 +28,6 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     private static final String STATES = "STATES";
-    private static final float ZOOM_FACTOR = 1.15f;
-    private static final float MIN_SCALE = 0.9f;
-    private static final float MAX_SCALE = 3.0f;
-    private static float currentScale = 1f;
     private SVGImageView mapView;
     private long backPressedTime;
     private Toast backToast;
@@ -43,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
     private static final long UPDATE_INTERVAL = 5000; // 5 секунд
     private Handler updateHandler;
     private Runnable updateRunnable;
+    private SvgMapManager svgMapManager;
 
     private final ActivityResultLauncher<Intent> mapSelectionLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -51,33 +45,71 @@ public class MainActivity extends AppCompatActivity {
                     String selectedMap = result.getData().getStringExtra("selectedMap");
                     Log.d(TAG, "Received selected map: " + selectedMap);
                     if (selectedMap != null) {
-                        loadMap(selectedMap);
+                        svgMapManager.loadMap(selectedMap);
                         initializeParkingMap(selectedMap);
                     }
                 }
             });
 
-    private void updateParkingSpotColors() {
-        if (mapView != null && currentParkingMap != null) {
-            Log.d(TAG, "Updating parking spot colors");
-            StringBuilder css = new StringBuilder();
-            for (ParkingSpot spot : currentParkingMap.getParkingSpots()) {
-                if (!spot.isOccupied()) {
-                    // Зеленый цвет для свободных мест
-                    css.append("#").append(spot.getSpotNumber()).append("{fill:rgb(41, 122, 68);}");
-                    Log.d(TAG, "Setting spot " + spot.getSpotNumber() + " to green (free)");
-                } else {
-                    // Красный цвет для занятых мест
-                    css.append("#").append(spot.getSpotNumber()).append("{fill:rgb(95, 73, 73);}");
-                    Log.d(TAG, "Setting spot " + spot.getSpotNumber() + " to red (occupied)");
+    @SuppressLint("ClickableViewAccessibility")
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        Log.d(STATES, "Creating Main Activity");
+        super.onCreate(savedInstanceState);
+
+        EdgeToEdge.enable(this);
+        setContentView(R.layout.activity_main);
+        
+        // Initialize MockServer
+        mockServer = MockServer.getInstance();
+        Log.d(TAG, "MockServer initialized");
+        
+        // Initialize update handler
+        updateHandler = new Handler(Looper.getMainLooper());
+        updateRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if (currentParkingMap != null) {
+                    // Обновляем состояние парковочных мест
+                    List<ParkingSpot> updatedSpots = mockServer.getParkingSpots();
+                    for (ParkingSpot updatedSpot : updatedSpots) {
+                        ParkingSpot currentSpot = currentParkingMap.getParkingSpot(updatedSpot.getSpotNumber());
+                        if (currentSpot != null) {
+                            currentSpot.setOccupied(updatedSpot.isOccupied());
+                        }
+                    }
+                    svgMapManager.setCurrentParkingMap(currentParkingMap);
                 }
+                updateHandler.postDelayed(this, UPDATE_INTERVAL);
             }
-            String cssString = css.toString();
-            Log.d(TAG, "Applying CSS: " + cssString);
-            mapView.setCSS(cssString);
-        } else {
-            Log.e(TAG, "Cannot update colors: mapView or currentParkingMap is null");
-        }
+        };
+
+        mapView = findViewById(R.id.MapView);
+        svgMapManager = new SvgMapManager(this, mapView);
+        
+        String defaultMap = ParkingConfig.MAP_1.getSvgFileName();
+        svgMapManager.loadMap(defaultMap);
+        initializeParkingMap(defaultMap);
+
+        mapView.setOnTouchListener(createListenerForMoveMap());
+        setZooming();
+
+        ImageButton selectMap = findViewById(R.id.SelectMapButton);
+        selectMap.setOnClickListener(v -> {
+            Intent intent = new Intent(this, SelectMap.class);
+            mapSelectionLauncher.launch(intent);
+        });
+
+        // Запускаем обновления
+        updateHandler.post(updateRunnable);
+    }
+
+    private void setZooming() {
+        ImageButton zoomInButton = findViewById(R.id.ZoomInButton);
+        zoomInButton.setOnClickListener(v -> svgMapManager.zoomIn());
+
+        ImageButton zoomOutButton = findViewById(R.id.ZoomOutButton);
+        zoomOutButton.setOnClickListener(v -> svgMapManager.zoomOut());
     }
 
     private void initializeParkingMap(String mapName) {
@@ -103,153 +135,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "Initialized " + currentParkingMap.getParkingSpots().size() + " parking spots");
         
         // Обновляем цвета парковочных мест
-        updateParkingSpotColors();
-    }
-
-    /**
-     * Loads and displays the specified map
-     * @param mapName name of the map file to load
-     */
-    private void loadMap(String mapName) {
-        if (mapName == null || mapName.isEmpty()) {
-            Log.e(TAG, "Invalid map name");
-            Toast.makeText(this, "Invalid map name", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        Log.d(TAG, "Loading map: " + mapName);
-        try {
-            SVG svg = SVG.getFromAsset(getAssets(), mapName);
-            if (svg != null) {
-                svg.setDocumentViewBox(0, 0, svg.getDocumentWidth(), svg.getDocumentHeight());
-                svg.setDocumentHeight("100%");
-                svg.setDocumentWidth("100%");
-                
-                mapView.setSVG(svg);
-                
-                // Обновляем CSS для окраски парковочных мест
-                StringBuilder css = new StringBuilder();
-                if (currentParkingMap != null) {
-                    for (ParkingSpot spot : currentParkingMap.getParkingSpots()) {
-                        if (!spot.isOccupied()) {
-                            // Зеленый цвет для свободных мест
-                            css.append("#").append(spot.getSpotNumber()).append("{fill:rgb(45, 141, 88);}");
-                        } else {
-                            // Красный цвет для занятых мест
-                            css.append("#").append(spot.getSpotNumber()).append("{fill:rgb(90, 73, 73);}");
-                        }
-                    }
-                }
-                mapView.setCSS(css.toString());
-                mapView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
-                
-                currentScale = 1f;
-                mapView.setScaleX(currentScale);
-                mapView.setScaleY(currentScale);
-                Log.d(TAG, "Map loaded successfully: " + mapName);
-            } else {
-                Log.e(TAG, "Failed to load SVG: " + mapName);
-                Toast.makeText(this, "Failed to load map", Toast.LENGTH_SHORT).show();
-            }
-        } catch (SVGParseException | IOException e) {
-            Log.e(TAG, "Error loading map: " + mapName, e);
-            Toast.makeText(this, "Error loading map: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    @SuppressLint("ClickableViewAccessibility")
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        Log.d(STATES, "Creating Main Activity");
-        super.onCreate(savedInstanceState);
-
-        EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_main);
-        
-        // Initialize MockServer
-        mockServer = MockServer.getInstance();
-        Log.d(TAG, "MockServer initialized");
-        
-        // Initialize update handler
-        updateHandler = new Handler(Looper.getMainLooper());
-        updateRunnable = new Runnable() {
-            @Override
-            public void run() {
-                Log.d(TAG, "Running update cycle");
-                if (currentParkingMap != null) {
-                    // Обновляем состояние парковочных мест
-                    List<ParkingSpot> updatedSpots = mockServer.getParkingSpots();
-                    Log.d(TAG, "Got " + updatedSpots.size() + " updated spots from MockServer");
-                    for (ParkingSpot updatedSpot : updatedSpots) {
-                        ParkingSpot currentSpot = currentParkingMap.getParkingSpot(updatedSpot.getSpotNumber());
-                        if (currentSpot != null) {
-                            currentSpot.setOccupied(updatedSpot.isOccupied());
-                            Log.d(TAG, "Updated spot " + currentSpot.getSpotNumber() + " to occupied: " + currentSpot.isOccupied());
-                        }
-                    }
-                    // Обновляем цвета
-                    updateParkingSpotColors();
-                } else {
-                    Log.e(TAG, "Cannot update: currentParkingMap is null");
-                }
-                // Планируем следующее обновление
-                updateHandler.postDelayed(this, UPDATE_INTERVAL);
-            }
-        };
-        
-        // Setup back press handling
-        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
-            @Override
-            public void handleOnBackPressed() {
-                if (backPressedTime + 2000 > System.currentTimeMillis()) {
-                    backToast.cancel();
-                    finishAffinity();
-                    return;
-                } else {
-                    backToast = Toast.makeText(getBaseContext(), "Press back again to exit", Toast.LENGTH_SHORT);
-                    backToast.show();
-                }
-                backPressedTime = System.currentTimeMillis();
-            }
-        });
-
-        mapView = findViewById(R.id.MapView);
-        String defaultMap = ParkingConfig.MAP_1.getSvgFileName();
-        loadMap(defaultMap);
-        initializeParkingMap(defaultMap);
-
-        mapView.setOnTouchListener(createListenerForMoveMap());
-        setZooming(mapView);
-
-        ImageButton selectMap = findViewById(R.id.SelectMapButton);
-        selectMap.setOnClickListener(v -> {
-            Intent intent = new Intent(this, SelectMap.class);
-            mapSelectionLauncher.launch(intent);
-        });
-    }
-
-    private void setZooming(ImageView mapView) {
-        ImageButton zoomInButton = findViewById(R.id.ZoomInButton);
-        zoomInButton.setOnClickListener(v -> zoomIn(mapView));
-
-        ImageButton zoomOutButton = findViewById(R.id.ZoomOutButton);
-        zoomOutButton.setOnClickListener(v -> zoomOut(mapView));
-    }
-
-    private void zoomIn(ImageView v) {
-        if (currentScale < MAX_SCALE) {
-            currentScale *= ZOOM_FACTOR;
-            v.setScaleX(currentScale);
-            v.setScaleY(currentScale);
-        }
-    }
-
-    private void zoomOut(ImageView v) {
-        if (currentScale > MIN_SCALE) {
-            currentScale /= ZOOM_FACTOR;
-            v.setScaleX(currentScale);
-            v.setScaleY(currentScale);
-        }
+        svgMapManager.setCurrentParkingMap(currentParkingMap);
     }
 
     private View.OnTouchListener createListenerForMoveMap() {
@@ -302,7 +188,7 @@ public class MainActivity extends AppCompatActivity {
         String mapName = intent != null ? intent.getStringExtra("name") : null;
         if (mapName != null) {
             Log.d(TAG, "Loading map: " + mapName);
-            loadMap(mapName);
+            svgMapManager.loadMap(mapName);
         }
     }
 
