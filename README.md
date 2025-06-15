@@ -1,6 +1,6 @@
 # ParkingApp
 
-![App Icon](app/src/main/res/mipmap-xxxhdpi/ic_launcher.png)
+![App Icon](app/src/main/res/mipmap-hdpi/ic_launcher.webp)
 
 ## Описание
 
