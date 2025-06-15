@@ -39,6 +39,15 @@ public class ParkingMapTest {
     }
 
     @Test
+    public void testAddsParkingSpot() {
+        ParkingSpot spot = new ParkingSpot("B1", false);
+        parkingMap.addParkingSpot(spot);
+
+        assertEquals("Количество мест должно быть 1", 1, parkingMap.getParkingSpots().size());
+        assertEquals("Добавленное место должно быть 'B1'", spot, parkingMap.getParkingSpots().get(0));
+    }
+
+    @Test
     public void testGetParkingSpot() {
         // Создаем тестовые парковочные места
         ParkingSpot spot1 = new ParkingSpot("A1", false);

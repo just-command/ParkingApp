@@ -77,4 +77,18 @@ public class ParkingSpotTest {
         assertEquals("Номер места не должен меняться при изменении состояния", 
                     "A1", spot.getSpotNumber());
     }
+
+    @Test
+    public void testSpotNumberCannotChange() {
+        // Проверяем, что номер места остается неизменным
+        ParkingSpot spot = new ParkingSpot("B2", true);
+
+        // Меняем состояние несколько раз
+        spot.setOccupied(false);
+        spot.setOccupied(true);
+        spot.setOccupied(false);
+
+        // Номер должен остаться прежним
+        assertEquals("B2", spot.getSpotNumber());
+    }
 } 
